@@ -1,7 +1,7 @@
 # Kusumi512-Standalone
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Overview: Quantum-Resistant Symmetric Encryption Available Now  
+## Quantum-Resistant Symmetric Encryption With Kusumi512
 
 The world faces the threat of quantum computers with the ability to break current cryptographic systems using algorithms like Grover's for symmetric ciphers. Kusumi512-Standalone is a .NET library that provides post-quantum symmetric encryption primitives to secure applications against these future threats. It offers Kusumi512 for bulk encryption and Kusumi512Poly1305 for authenticated encryption with associated data (AEAD).  
 
@@ -85,11 +85,11 @@ Built on a C# implementation of ChaCha20, Kusumi512 makes minimal modifications 
 
 Compared to AES-256, Kusumi512 provides true 256-bit quantum security (vs. AES-256's effective 128 bits post-Grover) and can be 1.5-3x faster in software-only environments. Versus Threefish-512, it offers 7-9% faster execution and 40-58% less memory in .NET benchmarks on Intel Core i9-11900H.
 
+### In Practice
+
 In practice, inputs include a 64-byte key, a 12-byte nonce, and plaintext of any length; outputs are ciphertext of matching length. The 64-bit counter prevents nonce reuse issues over long streams, ideal for applications like 4K video streaming.
 
 Use cases involve securing data at rest (e.g., file encryption) or in transit (e.g., streaming media), especially where high throughput is needed in quantum-safe environments like cloud storage or real-time communications.
-
-### In Practice
 
 **API Highlights**:
 - `new Kusumi512(byte[] key, byte[] nonce)`: Creates an `ISymmetricCipher` instance (key: 64 bytes, nonce: 12 bytes).
@@ -189,7 +189,8 @@ Interface for symmetric ops (useful for mocking/testing/DI).
 
 For AEAD: Ciphertext appends 128-bit tag; decryption throws on invalid.
 
-# Benchmark Comparison Report: Kusumi512 vs. Threefish-512 Symmetric Ciphers
+# Benchmark Comparison Report: 
+# Kusumi512 vs. Threefish-512 Symmetric Ciphers
 
 ## Executive Summary
 
