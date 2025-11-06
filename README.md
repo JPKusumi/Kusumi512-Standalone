@@ -18,7 +18,7 @@ Hence, a key feature of the new normal is that devs and storage systems must acc
 
 Via NuGet:
 
-    dotnet add package Kusumi512-Standalone --version 1.0.0
+    dotnet add package Kusumi512-Standalone --version 1.0.1
 
 Supports .NET 8+ and .NET 10.
 
