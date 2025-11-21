@@ -23,7 +23,7 @@ Unreleased
 - Fixed:
 - Security:
 
-## [0.1.0] - YYYY-MM-DD
+## [1.0.1] - 2025-11-06
 ### Added
 - Initial public release of Kusumi512-Standalone.
 - Basic project structure and README.
