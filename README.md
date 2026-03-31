@@ -72,19 +72,19 @@ This behaviour is unconditional—it applies regardless of whether encryption or
 Kusumi512-Standalone enables "future-proof" symmetric encryption upgrades with minimal disruption, targeting quantum-resistant primitives for new projects. Key benefits:  
 
 - **Quantum Resistance**: Kusumi512 offers 512-bit keys for symmetric encryption (effective 256-bit security post-Grover), outperforming Threefish-512 in benchmarks (7-9% faster execution, 40-58% less memory).  
-- **Efficiency**: Optimized for .NET (C#), with low overhead�ideal for high-throughput apps like cloud services, IoT, or data pipelines.  
+- **Efficiency**: Optimized for .NET (C#), with low overhead-ideal for high-throughput apps like cloud services, IoT, or data pipelines.  
 - **Ease of Adoption**: NuGet integration; requires .NET 8+.  
 - **Risk Mitigation**: Addresses quantum threats.  
 - **Benchmarks Summary**: Kusumi512 excels in speed and RAM vs. alternatives, making it a practical "new normal" for 512-bit symmetric crypto.  
 
-Evaluate via a proof-of-concept: Install the package and test Kusumi512 for your workload. For ROI, consider avoided breaches in a post-quantum world�contact NIST or consult [xAI's resources](https://x.ai) for broader AI/quantum insights.  
+Evaluate via a proof-of-concept: Install the package and test Kusumi512 for your workload. For ROI, consider avoided breaches in a post-quantum world-contact NIST or consult [xAI's resources](https://x.ai) for broader AI/quantum insights.  
 
 Resources:
-- **Cryptography Basics**: [Wikipedia: Cryptography](https://en.wikipedia.org/wiki/Cryptography) � A high-level intro to encryption concepts.  
-- **Symmetric vs. Asymmetric Encryption**: [Khan Academy: Cryptography](https://www.khanacademy.org/computing/computer-science/cryptography) � Free videos explaining keys, ciphers, and hashes.  
-- **Quantum Threats**: [NIST Post-Quantum Cryptography](https://csrc.nist.gov/projects/post-quantum-cryptography) � Explains why quantum computers could break current encryption and the shift to PQC.  
-- **Quantum Computing Primer**: [IBM: What is Quantum Computing?](https://www.ibm.com/topics/quantum-computing) � Simple explanation of the "quantum threat" in news stories.  
-- **Why Larger Keys Matter**: [Cloudflare: Post-Quantum Cryptography](https://blog.cloudflare.com/post-quantum-cryptography/) � Real-world context on urgency without deep math.  
+- **Cryptography Basics**: [Wikipedia: Cryptography](https://en.wikipedia.org/wiki/Cryptography) - A high-level intro to encryption concepts.  
+- **Symmetric vs. Asymmetric Encryption**: [Khan Academy: Cryptography](https://www.khanacademy.org/computing/computer-science/cryptography) - Free videos explaining keys, ciphers, and hashes.  
+- **Quantum Threats**: [NIST Post-Quantum Cryptography](https://csrc.nist.gov/projects/post-quantum-cryptography) - Explains why quantum computers could break current encryption and the shift to PQC.  
+- **Quantum Computing Primer**: [IBM: What is Quantum Computing?](https://www.ibm.com/topics/quantum-computing) - Simple explanation of the "quantum threat" in news stories.  
+- **Why Larger Keys Matter**: [Cloudflare: Post-Quantum Cryptography](https://blog.cloudflare.com/post-quantum-cryptography/) - Real-world context on urgency without deep math.  
 
 ### Another Usage Example: Stream Encryption  
 
