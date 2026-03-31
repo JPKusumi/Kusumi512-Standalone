@@ -8,7 +8,7 @@
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
     <PackageId>Kusumi512-Standalone</PackageId>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Description>Slim library for Kusumi512 only. A lightweight library for symmetric cipher Kusumi512 and its AEAD variant.</Description>
     <PackageTags>package;library;streaming;cryptography;encryption;csharp;cipher;code;dotnet;quantum-safe;post-quantum;symmetric;pqc;quantum-resistant;future-proof;kusumi;kusumi512;.net;symmetric-encryption</PackageTags>
     <PlatformTarget>x64</PlatformTarget>
