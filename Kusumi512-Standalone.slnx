@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="Kusumi512-Standalone.csproj" />
+  <Project Path="tests/Kusumi512.Tests/Kusumi512.Tests.csproj" />
 </Solution>

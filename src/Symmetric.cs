@@ -20,6 +20,8 @@ namespace Kusumi512
         private uint[] _workingState = new uint[25]; // Working state (reusable)
         private ulong blockCounter; // 64-bit counter (62-bit effective)
         private readonly byte[] _keystreamBuffer = new byte[100]; // Reusable buffer
+        private readonly byte[] _key;
+        private readonly byte[] _nonce;
 
         private static readonly bool IsAvx2Supported = Avx2.IsSupported;
 
@@ -27,6 +29,9 @@ namespace Kusumi512
         {
             if (key.Length != 64) throw new ArgumentException("Key must be 512 bits (64 bytes).", nameof(key));
             if (nonce.Length != 12) throw new ArgumentException("Nonce must be 96 bits (12 bytes).", nameof(nonce));
+
+            _key = key;
+            _nonce = nonce;
 
             // Initialize constants
             _startState[0] = 0x61707865;
@@ -82,16 +87,23 @@ namespace Kusumi512
             long bytesPerSegment = 1L << 20; // 1MB
             blockCounter = 1;
 
-            int bytesRead;
-            while ((bytesRead = input.Read(buffer, 0, bufferSize)) > 0)
+            try
             {
-                if (nonceGenerator != null && bytesProcessed / bytesPerSegment > (bytesProcessed - bytesRead) / bytesPerSegment)
+                int bytesRead;
+                while ((bytesRead = input.Read(buffer, 0, bufferSize)) > 0)
                 {
-                    UpdateNonce(nonceGenerator(bytesProcessed));
+                    if (nonceGenerator != null && bytesProcessed / bytesPerSegment > (bytesProcessed - bytesRead) / bytesPerSegment)
+                    {
+                        UpdateNonce(nonceGenerator(bytesProcessed));
+                    }
+                    EncryptInPlace(buffer.AsSpan(0, bytesRead));
+                    output.Write(buffer, 0, bytesRead);
+                    bytesProcessed += bytesRead;
                 }
-                EncryptInPlace(buffer.AsSpan(0, bytesRead));
-                output.Write(buffer, 0, bytesRead);
-                bytesProcessed += bytesRead;
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(buffer);
             }
         }
 
@@ -136,23 +148,30 @@ namespace Kusumi512
             long bytesPerSegment = 1024 * 1024;
             blockCounter = 1;
 
-            while (true)
+            try
             {
-                int bytesRead = await input.ReadAsync(buffer, 0, bufferSize, cancellationToken).ConfigureAwait(false);
-                if (bytesRead == 0) break;
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (nonceGenerator != null && bytesProcessed / bytesPerSegment > (bytesProcessed - bytesRead) / bytesPerSegment)
+                while (true)
                 {
-                    UpdateNonce(await nonceGenerator(bytesProcessed).ConfigureAwait(false));
-                    segmentProgress?.Report(++segmentCount);
+                    int bytesRead = await input.ReadAsync(buffer, 0, bufferSize, cancellationToken).ConfigureAwait(false);
+                    if (bytesRead == 0) break;
+
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (nonceGenerator != null && bytesProcessed / bytesPerSegment > (bytesProcessed - bytesRead) / bytesPerSegment)
+                    {
+                        UpdateNonce(await nonceGenerator(bytesProcessed).ConfigureAwait(false));
+                        segmentProgress?.Report(++segmentCount);
+                    }
+                    await EncryptInPlaceAsync(buffer.AsMemory(0, bytesRead), cancellationToken).ConfigureAwait(false);
+                    await output.WriteAsync(buffer, 0, bytesRead, cancellationToken).ConfigureAwait(false);
+                    bytesProcessed += bytesRead;
+                    if (totalBytes > 0)
+                        progress?.Report((double)bytesProcessed / totalBytes);
                 }
-                await EncryptInPlaceAsync(buffer.AsMemory(0, bytesRead), cancellationToken).ConfigureAwait(false);
-                await output.WriteAsync(buffer, 0, bytesRead, cancellationToken).ConfigureAwait(false);
-                bytesProcessed += bytesRead;
-                if (totalBytes > 0)
-                    progress?.Report((double)bytesProcessed / totalBytes);
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(buffer);
             }
         }
 
@@ -392,7 +411,11 @@ namespace Kusumi512
         }
         public void Dispose()
         {
-            // No-op; no unmanaged resources
+            CryptographicOperations.ZeroMemory(MemoryMarshal.AsBytes(_startState.AsSpan()));
+            CryptographicOperations.ZeroMemory(MemoryMarshal.AsBytes(_workingState.AsSpan()));
+            CryptographicOperations.ZeroMemory(_keystreamBuffer);
+            CryptographicOperations.ZeroMemory(_key);
+            CryptographicOperations.ZeroMemory(_nonce);
         }
     }
 }
