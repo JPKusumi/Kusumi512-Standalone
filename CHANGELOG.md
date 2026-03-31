@@ -23,6 +23,12 @@ Unreleased
 - Fixed:
 - Security:
 
+## [1.0.2] - 2026-03-31
+### Added
+- Improved memory hygiene to match GreenfieldPQC v1.1.4
+- Updated by porting (relevant) test coverage from GreenfieldPQC
+- ReadMe improvements
+
 ## [1.0.1] - 2025-11-06
 ### Added
 - Initial public release of Kusumi512-Standalone.
