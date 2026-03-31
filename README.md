@@ -13,6 +13,7 @@ Hence, a key feature of the new normal is that devs and storage systems must acc
 - **API Simplicity**: Direct instantiation; synchronous and asynchronous methods.  
 - **Benchmarked**: Kusumi512 beats Threefish-512 in speed/memory.  
 - **NuGet Package**: Easy integration with .NET 8+; no additional configuration needed.
+- **Memory Hygiene**: Key and nonce buffers are zeroed on `Dispose()`, reducing the window for sensitive material to be read from memory.
 
 ## Installation  
 
@@ -41,24 +42,49 @@ Supports .NET 8+ and .NET 10.
 
     Console.WriteLine(Encoding.UTF8.GetString(decrypted)); // "Hello, PQC!"
 
+## Security Best Practices
+
+Following these guidelines reduces the risk of accidental secret disclosure:
+
+- **Do not log or transmit keys, nonces, or plaintext.** Logging or printing key/nonce/plaintext valuesâ€”even in debug buildsâ€”can expose them in log aggregators, crash reporters, or monitoring dashboards. Production code **must not** emit sensitive material to any output stream.
+- **Do not transmit ciphertext to third-party services without explicit trust.** Ciphertext should only be sent to endpoints you control or that are party to the agreed-upon security boundary.
+- **Use unique nonces per encryption operation.** Reusing a (key, nonce) pair leaks information about plaintext. Generate nonces with `RandomNumberGenerator.Fill`.
+- **Dispose cipher instances promptly.** Both `Kusumi512` and `Kusumi512Poly1305` implement `IDisposable`. Calling `Dispose()` (or using a `using` statement) immediately zeros the key and nonce from memory. Defer disposal only for as long as the cipher is actively needed.
+- **Rotate keys regularly.** Even quantum-safe keys benefit from periodic rotation to limit the blast radius of a compromise.
+- **Avoid storing derived secrets alongside ciphertext.** Do not persist Poly1305 MAC keys or intermediate keystream material next to the ciphertext they protect.
+
+### Memory-Hygiene Guarantee
+
+When `Dispose()` is called on a `Kusumi512` or `Kusumi512Poly1305` instance, the library immediately zeroes:
+
+- The caller-provided key buffer (64 bytes).
+- The caller-provided nonce buffer (12 bytes).
+- All internal state arrays and working buffers.
+
+This behaviour is unconditionalâ€”it applies regardless of whether encryption or decryption was ever performed. Use a `using` statement or `try/finally` block to ensure timely disposal:
+
+    using var cipher = new Kusumi512(key, nonce);
+    byte[] ciphertext = cipher.Encrypt(plaintext);
+    // key and nonce are zeroed automatically when the block exits.
+
 ## Old Normal vs. New Normal  
 
 Kusumi512-Standalone enables "future-proof" symmetric encryption upgrades with minimal disruption, targeting quantum-resistant primitives for new projects. Key benefits:  
 
 - **Quantum Resistance**: Kusumi512 offers 512-bit keys for symmetric encryption (effective 256-bit security post-Grover), outperforming Threefish-512 in benchmarks (7-9% faster execution, 40-58% less memory).  
-- **Efficiency**: Optimized for .NET (C#), with low overhead—ideal for high-throughput apps like cloud services, IoT, or data pipelines.  
+- **Efficiency**: Optimized for .NET (C#), with low overheadï¿½ideal for high-throughput apps like cloud services, IoT, or data pipelines.  
 - **Ease of Adoption**: NuGet integration; requires .NET 8+.  
 - **Risk Mitigation**: Addresses quantum threats.  
 - **Benchmarks Summary**: Kusumi512 excels in speed and RAM vs. alternatives, making it a practical "new normal" for 512-bit symmetric crypto.  
 
-Evaluate via a proof-of-concept: Install the package and test Kusumi512 for your workload. For ROI, consider avoided breaches in a post-quantum world—contact NIST or consult [xAI's resources](https://x.ai) for broader AI/quantum insights.  
+Evaluate via a proof-of-concept: Install the package and test Kusumi512 for your workload. For ROI, consider avoided breaches in a post-quantum worldï¿½contact NIST or consult [xAI's resources](https://x.ai) for broader AI/quantum insights.  
 
 Resources:
-- **Cryptography Basics**: [Wikipedia: Cryptography](https://en.wikipedia.org/wiki/Cryptography) — A high-level intro to encryption concepts.  
-- **Symmetric vs. Asymmetric Encryption**: [Khan Academy: Cryptography](https://www.khanacademy.org/computing/computer-science/cryptography) — Free videos explaining keys, ciphers, and hashes.  
-- **Quantum Threats**: [NIST Post-Quantum Cryptography](https://csrc.nist.gov/projects/post-quantum-cryptography) — Explains why quantum computers could break current encryption and the shift to PQC.  
-- **Quantum Computing Primer**: [IBM: What is Quantum Computing?](https://www.ibm.com/topics/quantum-computing) — Simple explanation of the "quantum threat" in news stories.  
-- **Why Larger Keys Matter**: [Cloudflare: Post-Quantum Cryptography](https://blog.cloudflare.com/post-quantum-cryptography/) — Real-world context on urgency without deep math.  
+- **Cryptography Basics**: [Wikipedia: Cryptography](https://en.wikipedia.org/wiki/Cryptography) ï¿½ A high-level intro to encryption concepts.  
+- **Symmetric vs. Asymmetric Encryption**: [Khan Academy: Cryptography](https://www.khanacademy.org/computing/computer-science/cryptography) ï¿½ Free videos explaining keys, ciphers, and hashes.  
+- **Quantum Threats**: [NIST Post-Quantum Cryptography](https://csrc.nist.gov/projects/post-quantum-cryptography) ï¿½ Explains why quantum computers could break current encryption and the shift to PQC.  
+- **Quantum Computing Primer**: [IBM: What is Quantum Computing?](https://www.ibm.com/topics/quantum-computing) ï¿½ Simple explanation of the "quantum threat" in news stories.  
+- **Why Larger Keys Matter**: [Cloudflare: Post-Quantum Cryptography](https://blog.cloudflare.com/post-quantum-cryptography/) ï¿½ Real-world context on urgency without deep math.  
 
 ### Another Usage Example: Stream Encryption  
 
@@ -119,7 +145,7 @@ Use cases involve securing data at rest (e.g., file encryption) or in transit (e
     byte[] ciphertext = cipher.Encrypt(plaintext);
     byte[] decrypted = cipher.Decrypt(ciphertext);  // Matches plaintext
 
-**Best Practices**: Use unique nonces per session; rotate keys frequently.
+**Best Practices**: Use unique nonces per session; rotate keys frequently; dispose cipher instances promptly using `using` to zero key and nonce memory; never log or transmit keys, nonces, or plaintext.
 
 ## Kusumi512Poly1305
 
@@ -157,7 +183,7 @@ Use cases include secure messaging or file storage, where detecting modification
     byte[] ciphertextWithTag = cipher.Encrypt(plaintext);
     byte[] decrypted = cipher.Decrypt(ciphertextWithTag);  // Matches plaintext
 
-**Best Practices**: Always verify integrity via the combined tag; include timestamps in data to prevent replays.
+**Best Practices**: Always verify integrity via the combined tag; include timestamps in data to prevent replays; dispose cipher instances promptly to zero key and nonce memory; never log or transmit keys, nonces, plaintext, or ciphertext to untrusted endpoints.
 
 ## API Documentation
 
