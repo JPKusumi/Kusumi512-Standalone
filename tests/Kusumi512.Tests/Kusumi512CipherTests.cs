@@ -412,5 +412,37 @@ namespace Kusumi512.Tests
 
             Assert.Equal(expected, actual);
         }
+
+        [Fact]
+        public void Kusumi512_KnownAnswer_JohnDonneRoundTrips()
+        {
+            // Specification test vector from the GreenfieldPQC reference implementation.
+            // Plaintext: John Donne, Meditation XVII ("No man is an island…").
+            byte[] key              = Convert.FromHexString("0e227b328679aa128aa844c3d25a79ed6dde8cfa828e997ef756bd0b4ee437387044b67997166d4504c583e864b8a33dd1a8e0834a639a6e8bb28568ee85ef5f");
+            byte[] nonce            = Convert.FromHexString("9927a415541d834163a34677");
+            byte[] expectedCipher   = Convert.FromHexString("c639453f06410004de17b6b93ac9c9d3321e4146642444e31c359674a3ce1d7e42c035d1da38786b043be9c9bf280ed78b061c4902a78c57c5bd6a78f700ce8fb0ef223524ed46ed7070755897b90a3891e510194a95f4319b60dfc6d5dd118519b6d50c0a42e8756111f706807612761b75f8ab8e612d4f20cfb895993236720c236d64e76a777f5b0a086d9e7febb0a4ecee2cc28532659855a9d0bd519492814fd488654bd98e3ac7a03cffc8c1177215e457a1b8ddacf227c40208eedfea050f45d99fd4b2dd2e5ac9fef80988a049ee593d0f9e291285104655ad8ea4801e4b002b9dd852c54fd6e3f9d4e66e947c211d4a397506da0a10a42d154380691920c9baf14e5253590fa517152f0ed435616d5095d05e3a619e55590f710921bf5cb76b9b2aa9b88e92a90d4e195f1babaa8a92430ec43f56bb6036032d6b6cd7f48642331f1eb06df89d3c76b2394d996a2bf6fd873b47530f01d2517da6c3c6937e3dc94584b95dc63d8e2ba11f77fbdb4521e075c0711577914b6f5183b8e83cfd5689");
+            byte[] plaintext        = Encoding.UTF8.GetBytes("No man is an island, entire of itself; every man is a piece of the continent, a part of the main. If a clod be washed away by the sea, Europe is the less, as well as if a promontory were, as well as if a manor of thy friend's or of thine own were: any man's death diminishes me, because I am involved in mankind, and therefore never send to know for whom the bell tolls; it tolls for thee.");
+
+            // First instance: encrypt then decrypt; ciphertext must equal the spec vector.
+            using var cipher1 = new Kusumi512((byte[])key.Clone(), (byte[])nonce.Clone());
+            byte[] ciphertext1 = cipher1.Encrypt(plaintext);
+            Assert.Equal(expectedCipher, ciphertext1);
+
+            using var decryptCipher1 = new Kusumi512((byte[])key.Clone(), (byte[])nonce.Clone());
+            byte[] decrypted1 = decryptCipher1.Decrypt(ciphertext1);
+            Assert.Equal(plaintext, decrypted1);
+
+            // Second instance: same assertions hold for a fresh pair (determinism).
+            using var cipher2 = new Kusumi512((byte[])key.Clone(), (byte[])nonce.Clone());
+            byte[] ciphertext2 = cipher2.Encrypt(plaintext);
+            Assert.Equal(expectedCipher, ciphertext2);
+
+            using var decryptCipher2 = new Kusumi512((byte[])key.Clone(), (byte[])nonce.Clone());
+            byte[] decrypted2 = decryptCipher2.Decrypt(ciphertext2);
+            Assert.Equal(plaintext, decrypted2);
+
+            // Both instances must produce identical ciphertext.
+            Assert.Equal(ciphertext1, ciphertext2);
+        }
     }
 }
